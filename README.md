@@ -134,7 +134,7 @@ sudo systemctl start power-monitor.service
 ``` 
 
 
-##Wake-on-LAN (WOL) Setup Guide
+# Wake-on-LAN (WOL) Setup Guide
 
 this setup uses a Raspberry Pi Zero W to automatically restart homelab systems after electricity returns.
 
