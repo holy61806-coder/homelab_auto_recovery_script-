@@ -131,5 +131,215 @@ sudo cp power-monitor.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable power-monitor.service
 sudo systemctl start power-monitor.service
+
+# Wake-on-LAN (WOL) Setup Guide
+
+This setup uses a Raspberry Pi Zero W to automatically restart homelab systems after electricity returns.
+
+---
+
+## Step 1 — Enable Wake-on-LAN in BIOS
+
+On each target system:
+
+Enable:
+
+* Wake-on-LAN
+* Power On By PCI-E / LAN
+* Resume by LAN
+
+Disable:
+
+* ErP / Deep Sleep (if present)
+
+Save BIOS settings and reboot.
+
+---
+
+## Step 2 — Check Network Interface
+
+Identify the network interface:
+
+```bash id="3m7j4x"
+ip a
+```
+
+Example:
+
+```text id="h1j08t"
+eno1
+enp3s0
+```
+
+---
+
+## Step 3 — Check WOL Support
+
+Install ethtool:
+
+```bash id="pxjwd0"
+sudo apt install ethtool
+```
+
+Check WOL capability:
+
+```bash id="q8m4d2"
+sudo ethtool enp3s0
+```
+
+Look for:
+
+```text id="tf1x4o"
+Supports Wake-on: g
+Wake-on: g
+```
+
+If WOL is disabled (`Wake-on: d`), enable it:
+
+```bash id="y9n1kq"
+sudo ethtool -s enp3s0 wol g
+```
+
+---
+
+## Step 4 — Make WOL Persistent
+
+Create a service:
+
+```bash id="x7k2pl"
+sudo nano /etc/systemd/system/wol-fix.service
+```
+
+```ini id="9w5n2d"
+[Unit]
+Description=Enable Wake-on-LAN
+
+[Service]
+Type=oneshot
+ExecStart=/usr/sbin/ethtool -s enp3s0 wol g
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable it:
+
+```bash id="q4m8vx"
+sudo systemctl daemon-reload
+sudo systemctl enable wol-fix.service
+```
+
+---
+
+## Step 5 — Install Wake-on-LAN on Raspberry Pi
+
+```bash id="m5z8qo"
+sudo apt install wakeonlan
+```
+
+---
+
+## Step 6 — Find Target MAC Address
+
+On the target system:
+
+```bash id="r3x7ja"
+ip a
+```
+
+Look for:
+
+```text id="m1p5zx"
+link/ether AA:BB:CC:DD:EE:FF
+```
+
+---
+
+## Step 7 — Test Wake-on-LAN
+
+Shutdown the target system.
+
+From the Raspberry Pi:
+
+```bash id="u4w2lr"
+wakeonlan AA:BB:CC:DD:EE:FF
+```
+
+If configured correctly, the system should power back on.
+
+---
+
+## Step 8 — Automate WOL on Raspberry Pi Boot
+
+Create script:
+
+```bash id="f7k3qd"
+nano ~/wol_boot.sh
+```
+
+Example:
+
+```bash id="d8v2ja"
+#!/bin/bash
+
+sleep 45
+
+wakeonlan AA:BB:CC:DD:EE:FF
+```
+
+Make executable:
+
+```bash id="a2x9cm"
+chmod +x ~/wol_boot.sh
+```
+
+---
+
+## Step 9 — Create Startup Service
+
+```bash id="k9r4vx"
+sudo nano /etc/systemd/system/wol.service
+```
+
+```ini id="j5n2qp"
+[Unit]
+Description=Wake systems on boot
+After=network-online.target
+
+[Service]
+Type=oneshot
+ExecStart=/home/pi/wol_boot.sh
+
+[Install]
+WantedBy=multi-user.target
+```
+
+Enable service:
+
+```bash id="q1v8zt"
+sudo systemctl daemon-reload
+sudo systemctl enable wol.service
+```
+
+---
+
+## Final Workflow
+
+```text id="t4m9xk"
+Power outage
+     ↓
+Servers safely shutdown
+     ↓
+Electricity returns
+     ↓
+Pi Zero W boots
+     ↓
+WOL service runs
+     ↓
+Wake-on-LAN packets sent
+     ↓
+Homelab systems restart automatically
+```
+
 ```
 
