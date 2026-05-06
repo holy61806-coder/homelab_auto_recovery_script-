@@ -61,6 +61,7 @@ When Electricity Returns
 
 The script retries multiple times until systems respond.
 
+<img width="861" height="572" alt="1" src="https://github.com/user-attachments/assets/b61ca6fd-5c00-4a70-863b-1924d351e220" />
 
 ## Auto Shutdown Script
 
