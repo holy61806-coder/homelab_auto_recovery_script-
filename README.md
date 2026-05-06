@@ -132,6 +132,14 @@ sudo systemctl daemon-reload
 sudo systemctl enable power-monitor.service
 sudo systemctl start power-monitor.service
 
+------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
 
 
 ### Wake-on-LAN (WOL) Setup Guide
