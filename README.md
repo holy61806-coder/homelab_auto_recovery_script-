@@ -131,8 +131,7 @@ sudo cp power-monitor.service /etc/systemd/system/
 sudo systemctl daemon-reload
 sudo systemctl enable power-monitor.service
 sudo systemctl start power-monitor.service
-
-------------------------------------------------------------------------------------------------------
+---
 
 
 
@@ -144,7 +143,7 @@ sudo systemctl start power-monitor.service
 
 ### Wake-on-LAN (WOL) Setup Guide
 
-This setup uses a Raspberry Pi Zero W to automatically restart homelab systems after electricity returns.
+this setup uses a Raspberry Pi Zero W to automatically restart homelab systems after electricity returns.
 
 ---
 
