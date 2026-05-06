@@ -60,3 +60,76 @@ When Electricity Returns
 - Homelab systems power back on automatically.
 
 The script retries multiple times until systems respond.
+
+
+## Auto Shutdown Script
+
+This script continuously monitors gateway/LAN availability. If the gateway becomes unreachable for a prolonged period, the server safely shuts itself down to avoid filesystem corruption or unclean shutdowns during power outages.
+
+### shutdown_monitor.sh
+
+```bash
+#!/bin/bash
+
+GATEWAY="192.168.29.1"
+CHECK_INTERVAL=5
+MAX_FAILURES=6
+
+FAILURES=0
+
+echo "Starting gateway monitor..."
+
+while true; do
+    if ping -c 1 -W 2 "$GATEWAY" > /dev/null; then
+        FAILURES=0
+    else
+        FAILURES=$((FAILURES + 1))
+        echo "Gateway unreachable ($FAILURES/$MAX_FAILURES)"
+    fi
+
+    if [ "$FAILURES" -ge "$MAX_FAILURES" ]; then
+        echo "Power outage detected. Initiating safe shutdown..."
+        shutdown -h now
+        exit 0
+    fi
+
+    sleep "$CHECK_INTERVAL"
+done
+```
+
+---
+
+## Background Service (systemd)
+
+This service runs the monitoring script automatically in the background after every boot.
+
+### power-monitor.service
+
+```ini
+[Unit]
+Description=Gateway Power Loss Monitor
+After=network.target
+
+[Service]
+ExecStart=/usr/local/bin/shutdown_monitor.sh
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
+```
+
+---
+
+## Installation
+
+```bash
+sudo cp shutdown_monitor.sh /usr/local/bin/
+sudo chmod +x /usr/local/bin/shutdown_monitor.sh
+
+sudo cp power-monitor.service /etc/systemd/system/
+
+sudo systemctl daemon-reload
+sudo systemctl enable power-monitor.service
+sudo systemctl start power-monitor.service
+```
+
