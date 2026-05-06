@@ -71,7 +71,7 @@ This script continuously monitors gateway/LAN availability. If the gateway becom
 ```bash
 #!/bin/bash
 
-GATEWAY="192.168.29.1"
+GATEWAY=" gateway ip "
 CHECK_INTERVAL=5
 MAX_FAILURES=6
 
